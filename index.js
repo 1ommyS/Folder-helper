@@ -147,6 +147,54 @@ public class ${name} {
     `
 	}
 
+	static vo(name) {
+		return `
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter
+@Setter
+@ToString
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ${name} {
+}
+    `
+	}
+
+	static command(name) {
+		return `
+		import jakarta.persistence.*;
+		import lombok.*;
+		
+		@Getter
+		@Setter
+		@ToString
+		@Builder
+		@NoArgsConstructor
+		@AllArgsConstructor
+		public class ${name}Command {
+		}
+			`
+	}
+
+	static query(name) {
+		return `
+		import jakarta.persistence.*;
+		import lombok.*;
+		
+		@Getter
+		@Setter
+		@ToString
+		@Builder
+		@NoArgsConstructor
+		@AllArgsConstructor
+		public class ${name}Query {
+		}
+			`
+	}
+
 	static apiError() {
 		return `
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -207,7 +255,7 @@ import java.util.Objects;
 
 @Slf4j
 @ControllerAdvice
-public class ExceptionAdvice {
+public class ${name}Advice {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({
@@ -327,10 +375,7 @@ program
 - <type> = "exception-advice>
 - <type> = "vo"
 - <type> = "command"
-- <type> = "query"
-- <type> = "mapper"
-- <type> = "config"
-- <type> = "exception"`
+- <type> = "query"`
 	)
 
 	.action((type, name) => {
@@ -424,6 +469,15 @@ program
 				content = FileTypesContent.entity(name)
 				break
 			case 'vo':
+				dirPath = path.join(process.cwd(), 'domain', name.toLowerCase(), 'vo')
+				filePath = path.join(dirPath, `${name}.java`)
+
+				if (!fs.existsSync(dirPath)) {
+					fs.mkdirSync(dirPath, { recursive: true })
+				}
+
+				content = FileTypesContent.vo(name)
+
 				break
 			case 'exception-advice':
 				dirPath = path.join(
@@ -434,10 +488,6 @@ program
 				)
 
 				filePath = path.join(dirPath, `${name}.java`)
-
-				if (!fs.existsSync(dirPath)) {
-					fs.mkdirSync(dirPath, { recursive: true })
-				}
 
 				if (!fs.existsSync(dirPath)) {
 					fs.mkdirSync(dirPath, { recursive: true })
@@ -455,14 +505,40 @@ program
 				content = FileTypesContent.exceptionAdvice(name)
 				break
 			case 'command':
+				folderName = name.charAt(0).toUpperCase() + name.slice(1)
+				dirPath = path.join(
+					process.cwd(),
+					'presentation',
+					'web',
+					folderName,
+					'dto',
+					'command'
+				)
+
+				if (!fs.existsSync(dirPath)) {
+					fs.mkdirSync(dirPath, { recursive: true })
+				}
+
+				filePath = path.join(dirPath, `${name}.java`)
+				content = FileTypesContent.command(name)
 				break
 			case 'query':
-				break
-			case 'mapper':
-				break
-			case 'exception':
-				break
-			case 'config':
+				folderName = name.charAt(0).toUpperCase() + name.slice(1)
+				dirPath = path.join(
+					process.cwd(),
+					'presentation',
+					'web',
+					folderName,
+					'dto',
+					'query'
+				)
+
+				if (!fs.existsSync(dirPath)) {
+					fs.mkdirSync(dirPath, { recursive: true })
+				}
+
+				filePath = path.join(dirPath, `${name}.java`)
+				content = FileTypesContent.query(name)
 				break
 			default:
 				console.log('что-то пошло не так', type, name)
